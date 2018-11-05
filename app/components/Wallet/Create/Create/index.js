@@ -115,26 +115,26 @@ class CreationContent extends Component {
 
     return (
       <div className={styles.container}>
-        <p>Please click the words in correct order to verify your backup.</p>
-        <p>{this.state.error}</p>
+        <p className={styles.header}>Please click the words in correct order to verify your backup.</p>
+        <p className={styles.error}>{this.state.error}</p>
 
         <div className={styles.proofWordsContainer}>
           {this.renderProofWordsInput()}
         </div>
 
-        <p>Selected Order</p>
+        <p className={styles.header}>Selected Order</p>
         <div className={styles.proofWordsContainer}>
           {this.renderProofWords()}
         </div>
 
         <Form.Button
           onClick={() => this.changeStatus(CREATE_STATUS.BACKUP)}
-          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black }`}>
+          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
           Back
         </Form.Button>
         <Form.Button
           onClick={() => this.finishCreation()}
-          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black }`}>
+          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
           Finish
         </Form.Button>
       </div>
@@ -163,12 +163,12 @@ class CreationContent extends Component {
         <div className={backupStyles.privatekey}>{this.state.newAccount.privateKey}</div>
         <Form.Button
           onClick={() => this.changeStatus(CREATE_STATUS.NEW)}
-          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black }`}>
+          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
           Back
         </Form.Button>
         <Form.Button
           onClick={() => this.onBackedUp()}
-          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black }`}>
+          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
           Next
         </Form.Button>
       </div>

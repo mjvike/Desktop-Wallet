@@ -67,7 +67,7 @@ class Import extends Component {
     return (
       <div className={styles.container}>
         <div className={styles.header}>TYPE LEGACY BACKUP PHRASE TO IMPORT</div>
-        <div className={styles.header}>This is for importing backups from old TronWatch Desktop versions</div>
+        <div className={styles.legacyWarning}>This is for importing backups from old TronWatch Desktop versions.</div>
         <Form className={styles.form}>
           <div className={styles.wordContainer}>
             <div className={styles.wordColumn}>

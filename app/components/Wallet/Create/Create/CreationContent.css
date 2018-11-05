@@ -1,12 +1,13 @@
 .container {
   margin-top: 40px;
-  height: 100%;
-  max-height: 200px;
+  height: auto;
+  max-height: 640px;
   width: 100%;
   background: #fff;
   border-radius: 10px;
   text-align: left;
   padding: 30px 60px;
+  padding-bottom:110px;
   box-sizing: border-box;
 }
 
@@ -45,7 +46,16 @@
 }
 
 .header {
+  margin-bottom:15px;
+  margin-top:15px;
   font-size: 14px;
+}
+.error{
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: normal;
+  color:red;
+  margin-bottom: 15px;
 }
 
 .radioSection {
