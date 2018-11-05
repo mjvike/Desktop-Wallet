@@ -14,3 +14,7 @@
   margin-top: 30px;
   z-index: 5;
 }
+
+.tabContainer a{
+  width: 124px !important;
+}

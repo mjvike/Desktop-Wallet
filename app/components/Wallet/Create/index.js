@@ -7,6 +7,7 @@ import Header from "../../Header";
 import Secondary from "../../Content/Secondary";
 import CreationContent from "./Create";
 import ImportPhrase from "./ImportPhrase";
+import LegacyImportPhrase from "./ImportPhraseLegacy";
 import ImportKey from "./ImportKey";
 
 const panes = [
@@ -23,6 +24,14 @@ const panes = [
     render: () => (
       <Tab.Pane attached={false}>
         <ImportPhrase />
+      </Tab.Pane>
+    )
+  },
+  {
+    menuItem: "Import Legacy",
+    render: () => (
+      <Tab.Pane attached={false}>
+        <LegacyImportPhrase />
       </Tab.Pane>
     )
   },

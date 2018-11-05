@@ -105,3 +105,17 @@
   box-sizing: border-box;
   text-align: left;
 }
+
+.proofWordsContainer{
+  line-height:15px;
+}
+.proofWord{
+  box-sizing: border-box;
+  display:inline-block;
+  cursor: pointer;
+  margin: 2px;
+  padding:5px;
+  border: 1px solid grey;
+  border-radius: 5px;
+  background-color:white;
+}
