@@ -1,7 +1,7 @@
 {
   "name": "TronWatch",
   "productName": "TronWatch",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Manage your Tron finances in one App! Store and spend them with our secure, open source wallet.",
   "main": "./main.prod.js",
   "author": {
