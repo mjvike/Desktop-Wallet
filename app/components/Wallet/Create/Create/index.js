@@ -83,7 +83,7 @@ class CreationContent extends Component {
   renderProofWords() {
     return this.state.proofWords.map((word, i) => {
       return (
-        <span className={styles.proofWord} key={i} onClick={() => this.onDeselect(word)}><span>{i}.</span> {word}</span>
+        <span className={styles.proofWord} key={i} onClick={() => this.onDeselect(word)}><span>{i + 1}.</span> {word}</span>
       )
     });
   }
