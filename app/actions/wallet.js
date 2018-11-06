@@ -3,6 +3,9 @@ const TronHttpTools = require("tron-http-tools");
 const crypto = require("crypto");
 const client = new TronHttpClient();
 const Decimal = require("decimal.js").Decimal;
+const fs = require('fs');
+
+import AccountHandler from './lib/AccountHandler';
 
 export const SET_TOKEN_BALANCES = "SET_TOKEN_BALANCES";
 export const INIT = "INIT";
@@ -53,7 +56,14 @@ function decrypt(text, password) {
 
 function savePersistent(persistent, password) {
   if (verifyPersistent(persistent)) {
-    let persistentString = JSON.stringify(persistent);
+
+    let persistentCopy = JSON.parse(JSON.stringify(persistent));
+    let keys = Object.keys(persistentCopy.accounts);
+    keys.forEach(x => {
+      persistentCopy.accounts[x].transactions = [];
+    });
+
+    let persistentString = JSON.stringify(persistentCopy);
     let encryptedString = encrypt(persistentString, password);
     window.localStorage.setItem(LOCALSTORAGE_KEY, encryptedString);
     return true;
@@ -81,15 +91,36 @@ export const onSetPassword = (props, newPassword) => {
   };
 };
 
-export const deleteAccount = (props, address) =>{
+export const deleteAccount = (props, address) => {
   delete props.wallet.persistent.accounts[address];
   savePersistent(props.wallet.persistent, props.wallet.pw);
 };
 
-export const renameAccount = (props, address, name, dispatch) =>{
+export const renameAccount = (props, address, name, dispatch) => {
   props.wallet.persistent.accounts[address].name = name;
   savePersistent(props.wallet.persistent, props.wallet.pw);
   dispatch(broadcastPersistent(props.wallet.persistent, WALLET_STATE.READY));
+};
+
+export const generateTronLinkCompatibleAccount = async () => {
+  const newAccount = await AccountHandler.generateAccount().getAccountAtIndex();
+  newAccount.tronLinkCompatible = true;
+  newAccount.words = newAccount.wordList.split(' ');
+  newAccount.address = newAccount.publicKey;
+  return newAccount;
+};
+
+export const tronLinkCompatibleAccountFromPhrases = async (phrases) => {
+  try {
+    const newAccount = await new AccountHandler(phrases).getAccountAtIndex();
+    newAccount.tronLinkCompatible = true;
+    newAccount.words = newAccount.wordList.split(' ');
+    newAccount.address = newAccount.publicKey;
+    return newAccount;
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
 };
 
 export const addAccount = async (
@@ -99,6 +130,7 @@ export const addAccount = async (
   newAccount = null
 ) => {
   console.log("adding account with name: " + accountName);
+  console.log(newAccount);
   if (!accountName || accountName === "") accountName = "Unnamed Account";
   let persistent = props.wallet.persistent;
 
@@ -113,6 +145,7 @@ export const addAccount = async (
     publicKey: newAccount.address,
     privateKey: newAccount.privateKey,
     words: newAccount.words ? newAccount.words : false,
+    tronLinkCompatible: (newAccount.tronLinkCompatible === true),
 
     tokens: [],
     transactions: [],
@@ -237,6 +270,7 @@ export const decryptPersistent = (persistent, password, dispatch) => {
   }
 };
 
+
 export const initFromStorage = (props, dispatch) => {
   let persistent = window.localStorage.getItem(LOCALSTORAGE_KEY);
 
@@ -250,15 +284,17 @@ export const initFromStorage = (props, dispatch) => {
         persistent_encrypted: persistent
       };
     } catch (e) {
-      window.localStorage.removeItem(LOCALSTORAGE_KEY);
-      console.log(e);
-      console.log("initFromStorage failed. deleting persistent " + persistent);
+      alert('error loading persistent');
+      alert(e.message);
+      alert(e.stack);
+      alert(persistent);
 
-      props.history.push("/wallets/create");
-      return {
-        type: INIT,
-        wallet_state: WALLET_STATE.NO_WALLET
-      };
+      let file = '' + e.message + '\n' + e.stack + '\n' + persistent;
+      const filename = 'persistent_crash_log' + new Date().getTime() + '.log';
+      fs.writeFileSync(filename, file);
+      alert('dumped crash log and storage backup to ' + filename);
+
+      throw e;
     }
   } else {
     props.history.push("/wallets/create");

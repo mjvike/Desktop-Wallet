@@ -39,13 +39,6 @@
   font-size: 14px;
 }
 
-.legacyWarning{
-  margin-top: 10px;
-  font-size: 13px;
-  font-weight: normal;
-  color:red;
-}
-
 .btn {
   margin: auto;
 }
@@ -106,4 +99,11 @@
 
 .invalid {
   color: red;
+}
+
+.legacyWarning{
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: normal;
+  color:red;
 }
