@@ -7,7 +7,6 @@
   border-radius: 10px;
   text-align: left;
   padding: 30px 60px;
-  padding-bottom:110px;
   box-sizing: border-box;
 }
 
@@ -102,8 +101,14 @@
   margin-top: -4px;
 }
 
-.btn {
-  margin: auto;
+.buttonContainer {
+  display: flex;
+  padding-top: 25px;
+  padding-bottom: 20px;
+}
+
+.buttonContainer .btn:first-child {
+  margin-right: 10px;
 }
 
 .input input {
@@ -116,16 +121,43 @@
   text-align: left;
 }
 
-.proofWordsContainer{
-  line-height:15px;
-}
-.proofWord{
+.proofWordsContainer {
+  line-height: 15px;
+  background: #f1f1f1;
+  border-radius: 5px;
+  padding: 10px;
   box-sizing: border-box;
-  display:inline-block;
+}
+
+.selectedProofWordsContainer {
+  line-height: 15px;
+}
+
+.selectedProofWordsContainer .proofWord {
+  background: #f1f1f1;
+}
+
+.proofWord {
+  box-sizing: border-box;
+  display: inline-block;
   cursor: pointer;
   margin: 2px;
-  padding:5px;
-  border: 1px solid grey;
+  padding: 5px;
+  border: 1px solid #d0d0d0;
   border-radius: 5px;
-  background-color:white;
+  background-color: white;
+  transition: 250ms;
+}
+
+.proofWord:hover {
+  transition: 0ms;
+  border: 1px solid #ed3f21;
+  background: rgba(0,0,0,0.1);
+  color: #000;
+}
+
+.proofWord span {
+  font-weight: 400;
+  color: #585858;
+  font-size: 15px;
 }

@@ -15,11 +15,6 @@
   align-items: center;
   background: none;
 }
-.half{
-  margin-top:15px !important;
-  float:left;
-  width:50%;
-}
 
 .button:hover {
   transition: 0ms;

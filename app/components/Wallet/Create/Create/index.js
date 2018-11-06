@@ -83,7 +83,7 @@ class CreationContent extends Component {
   renderProofWords() {
     return this.state.proofWords.map((word, i) => {
       return (
-        <span className={styles.proofWord} key={i} onClick={() => this.onDeselect(word)}>{i}. {word}</span>
+        <span className={styles.proofWord} key={i} onClick={() => this.onDeselect(word)}><span>{i}.</span> {word}</span>
       )
     });
   }
@@ -123,20 +123,22 @@ class CreationContent extends Component {
         </div>
 
         <p className={styles.header}>Selected Order</p>
-        <div className={styles.proofWordsContainer}>
+        <div className={styles.selectedProofWordsContainer}>
           {this.renderProofWords()}
         </div>
 
-        <Form.Button
-          onClick={() => this.changeStatus(CREATE_STATUS.BACKUP)}
-          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
-          Back
-        </Form.Button>
-        <Form.Button
-          onClick={() => this.finishCreation()}
-          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
-          Finish
-        </Form.Button>
+        <div className={styles.buttonContainer}>
+          <Form.Button
+            onClick={() => this.changeStatus(CREATE_STATUS.BACKUP)}
+            className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
+            Back
+          </Form.Button>
+          <Form.Button
+            onClick={() => this.finishCreation()}
+            className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
+            Finish
+          </Form.Button>
+        </div>
       </div>
     )
   }
@@ -161,16 +163,18 @@ class CreationContent extends Component {
         {this.renderWords(this.state.newAccount)}
         <div className={backupStyles.seedHeader}>PRIVATE KEY :</div>
         <div className={backupStyles.privatekey}>{this.state.newAccount.privateKey}</div>
-        <Form.Button
-          onClick={() => this.changeStatus(CREATE_STATUS.NEW)}
-          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
-          Back
-        </Form.Button>
-        <Form.Button
-          onClick={() => this.onBackedUp()}
-          className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
-          Next
-        </Form.Button>
+        <div className={styles.buttonContainer}>
+          <Form.Button
+            onClick={() => this.changeStatus(CREATE_STATUS.NEW)}
+            className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
+            Back
+          </Form.Button>
+          <Form.Button
+            onClick={() => this.onBackedUp()}
+            className={`${styles.btn} ${buttonStyles.button} ${ buttonStyles.black } ${buttonStyles.half}`}>
+            Next
+          </Form.Button>
+        </div>
       </div>
     )
   }
