@@ -40,3 +40,29 @@
 .buttonContainer > div {
   box-shadow: 0px 0px 7px #212121;
 }
+
+.tosContainer {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0;
+  z-index: 99999;
+  background-color: black;
+}
+
+.tosHeader {
+  color: red;
+  font-size: 20px;
+  font-weight: normal;
+}
+
+.tosCheckboxContainer {
+  color: white;
+}
+
+.tos{
+  background-color:white;
+  max-height:500px;
+  overflow-y:scroll;
+}
