@@ -54,20 +54,22 @@ class WalletList extends Component {
     return (
       <div className={styles.tosContainer}>
         <div className={styles.tosHeader}>
-          The TronWatch Desktop Wallet is currently in BETA.<br/>
-          It is running on the TRON Mainnet, however it is still BETA software, it changes often and can contain bugs. Use at
-          your own risk.<br/>
-          Always make sure you have backups of your private key and recovery phrases.
+          The TronWatch Desktop Wallet is currently in <span>BETA</span>.<br/><br/>
+          <div className={styles.tosSubText}>Even though it is running on the TRON Mainnet, it is still BETA software which changes often and can contain bugs. Use at
+          your own risk.<br/><br/>
+          Always make sure you have backups of your private key and recovery phrases.</div>
         </div>
+        <div className={styles.tosBox}>
+          <div className={styles.tos}>
+              <ReactMarkdown source={tos}/>
+          </div>
 
-        <div className={styles.tos}>
-            <ReactMarkdown source={tos}/>
-        </div>
+          <div className={styles.tosCheckboxContainer}>
+            <label><input onChange={this.handleChange.bind(this)} value={this.state.tosAccepted} type="checkbox"/>I read and accept the Terms of Service</label>
+          </div>
 
-        <div className={styles.tosCheckboxContainer}>
-          <input onChange={this.handleChange.bind(this)} value={this.state.tosAccepted} type="checkbox"/>I read and accept the Terms of Service
+          <div className={styles.tosBtn} onClick={this.clickAccept.bind(this)}>Accept</div>
         </div>
-        <button onClick={this.clickAccept.bind(this)}>Accept</button>
       </div>
     )
   }
