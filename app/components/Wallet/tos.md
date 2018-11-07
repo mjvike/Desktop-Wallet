@@ -36,7 +36,9 @@ Quebec's Consumer Protection Act ( chapter p-40.1) applies.
 Any notice or communication which is required or permitted to be given under these Conditions
 must be made in writing and will be deemed to have been effectively transmitted if sent by email to
 the following address:
+
 a) in the case of the Business:  legal@tron.watch ; and
+
 Such notice or communication will be deemed to have been given and received on the day it is
 actually delivered or sent (or if that day is not a business day, on the following business day), unless
 it is delivered or sent after 4:30 p.m., in which case it will be deemed to have been given and
