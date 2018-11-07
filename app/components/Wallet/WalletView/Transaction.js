@@ -181,8 +181,8 @@ class Transaction extends Component {
         let contract = this.props.tx.asset_issue_contract;
         return (
           <div>
-            <div className={`${styles.txAmount} ${styles.red}`}>
-              -{" "}
+            <div className={`${styles.txAmount} ${styles.green}`}>
+              +{" "}
               <FormattedNumber
                 value={dropsToTrx(
                   parseInt(this.props.tx.amount_tokens) *
@@ -191,8 +191,8 @@ class Transaction extends Component {
               />{" "}
               TRX
             </div>
-            <div className={`${styles.txAmount} ${styles.green}`}>
-              + <FormattedNumber value={this.props.tx.amount_tokens} />{" "}
+            <div className={`${styles.txAmount} ${styles.red}`}>
+              - <FormattedNumber value={this.props.tx.amount_tokens} />{" "}
               {this.props.asset}
             </div>
           </div>

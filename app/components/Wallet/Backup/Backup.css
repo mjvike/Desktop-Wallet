@@ -54,7 +54,7 @@
 .word span {
   display: inline-block;
   white-space: nowrap;
-  line-height: 20px;
+  line-height: 18px;
   font-weight: 700;
   color: #ed3f21;
   margin-right: 5px;

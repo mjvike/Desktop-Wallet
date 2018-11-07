@@ -191,7 +191,9 @@
     "react-datepicker": "^1.5.0",
     "react-dom": "^16.2.0",
     "react-hot-loader": "^4.0.0-beta.13",
+    "react-infinite-scroller": "^1.2.2",
     "react-intl": "^2.4.0",
+    "react-markdown": "^4.0.3",
     "react-redux": "^5.0.6",
     "react-router": "^4.2.0",
     "react-router-dom": "^4.2.2",
@@ -203,7 +205,8 @@
     "semantic-ui-react": "^0.80.0",
     "source-map-support": "^0.5.3",
     "tron-http-client": "tronwatch/tron-http-client",
-    "tron-http-tools": "tronwatch/tron-http-tools"
+    "tron-http-tools": "tronwatch/tron-http-tools",
+    "tronweb": "tronprotocol/tron-web"
   },
   "devEngines": {
     "node": ">=7.x",

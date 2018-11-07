@@ -1,11 +1,11 @@
-import React, {Component} from "react";
-import {connect} from "react-redux";
-import {withRouter} from "react-router-dom";
+import React, { Component } from "react";
+import { connect } from "react-redux";
+import { withRouter } from "react-router-dom";
 import styles from "./Import.css";
 
-import {Input, Form} from "semantic-ui-react";
+import { Input, Form } from "semantic-ui-react";
 import buttonStyles from "../../../Button.css";
-import {addAccount, tronLinkCompatibleAccountFromPhrases} from "../../../../actions/wallet";
+import { addAccount } from "../../../../actions/wallet";
 
 const bip39 = require("bip39");
 const tools = require("tron-http-tools");
@@ -46,7 +46,7 @@ class Import extends Component {
           <Input
             onChange={this.changeWord.bind({
               state: this.state,
-              id: i - 1,
+              id: i-1,
               _this: this
             })}
           />
@@ -57,22 +57,17 @@ class Import extends Component {
     return output;
   }
 
-  async onImport() {
+  onImport() {
     let mnemonic = this.state.words.join(" ");
-    let newAccount = await tronLinkCompatibleAccountFromPhrases(mnemonic);
-
-    if (newAccount) {
-      this.props.addAccount(this.props, "Imported Account", newAccount);
-    } else {
-      console.log('failed to import account');
-    }
+    let newAccount = tools.accounts.accountFromMnemonicString(mnemonic);
+    this.props.addAccount(this.props, "Imported Account", newAccount);
   }
 
   render() {
     return (
       <div className={styles.container}>
-        <div className={styles.header}>TYPE BACKUP PHRASE TO IMPORT :</div>
-        <div className={styles.legacyWarning}>If you created your account before November 2018 and with an old TronWatch Desktop version, please use import legacy</div>
+        <div className={styles.header}>TYPE LEGACY BACKUP PHRASE TO IMPORT</div>
+        <div className={styles.legacyWarning}>This is for importing backups from old TronWatch Desktop versions.</div>
         <Form className={styles.form}>
           <div className={styles.wordContainer}>
             <div className={styles.wordColumn}>
@@ -86,7 +81,7 @@ class Import extends Component {
             onClick={this.onImport.bind(this)}
             className={`${styles.btn} ${buttonStyles.button} ${
               buttonStyles.black
-              }`}
+            }`}
           >
             Import
           </Form.Button>
