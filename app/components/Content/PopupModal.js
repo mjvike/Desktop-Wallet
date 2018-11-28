@@ -6,6 +6,7 @@ import { Button } from "semantic-ui-react";
 import buttonStyles from "../Button.css";
 
 import { CSSTransitionGroup } from "react-transition-group";
+import {HashLoader} from "react-spinners";
 
 import {
   CheckMarkBoxAnimation,
@@ -39,6 +40,17 @@ export class PopupModal extends Component {
           </Button>
         </div>
       );
+    } else if (this.props.waitForLedger) {
+      return (
+        <div className={styles.buttonContainer}>
+          <Button
+            onClick={this.props.modalLedgerCancel}
+            className={`${buttonStyles.button} ${buttonStyles.gradient}`}
+          >
+            Cancel
+          </Button>
+        </div>
+        );
     } else {
       if (this.props.buttonText) {
         return (
@@ -70,6 +82,8 @@ export class PopupModal extends Component {
         return <CheckMarkBoxAnimation className={styles.success} />;
       } else if (this.props.failure) {
         return <WarningCircleAnimation className={styles.failure} />;
+      } else if (this.props.waitForLedger) {
+        return <HashLoader color="#343a40" loading={true} height={5} width={150} /> ;
       }
     }
   }

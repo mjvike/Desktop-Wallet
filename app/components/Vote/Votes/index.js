@@ -12,6 +12,12 @@ import buttonStyles from "../../Button.css";
 
 import styles from "./style.css";
 
+import Transport from "@ledgerhq/hw-transport-node-hid";
+import AppTron from "../../../utils/ledger/Tron";
+import { toHexString } from "../../../utils/hex";
+const { hexToBase64 } = require("../../../utils/ledger/utils");
+const tools = require("tron-http-tools");
+
 const TronHttpClient = require("tron-http-client");
 
 class VoteMultiple extends Component {
@@ -153,6 +159,76 @@ class VoteMultiple extends Component {
     this.setState({ selectedWallet: account });
   };
 
+  async ledgerSign(path, rawTxHex, address) {
+    while (this.state.showLedgerModal){
+      try {
+        console.log(path);
+        const transport = await Transport.create();
+        const tron = new AppTron(transport);
+        const result = await tron.getAddress(path, false);
+        if (result.address !== address)
+          return {error: true, message: "Address does not match!"}
+        
+        const signature = await tron.signTransaction(path, rawTxHex);
+    
+        return { error: false, message: new Uint8Array(signature) } 
+      } catch (error) {
+        console.log(error);
+
+        if( (this.state.showLedgerModal) && (error.message.indexOf("denied by the user") > -1)) {
+          return {error: true, message: "Canceled by user on ledger!"}
+        }
+        //return {error: true, message: "error"}
+      }
+    }
+  }
+
+  async voteWithLedger(witVotes){
+    let client = new TronHttpClient();
+    let response = null;
+    let hex = null;
+    let transaction = null;
+    try {
+        // Get Transaction hash
+        transaction = await tools.transactions.createUnsignedVoteWitnessTransaction(
+          {
+            ownerAddress: this.state.selectedWallet.publicKey,
+            votes: witVotes,
+          },
+          await client.getLastBlock()
+        );
+        
+        // Convert to HEX string
+        hex = toHexString(transaction.getRawData().serializeBinary());
+        // Sign on Ledger
+        let result = await this.ledgerSign(this.state.selectedWallet.ledgerPath, hex, this.state.selectedWallet.publicKey)
+        // Transmit
+        if (typeof result === 'undefined') return;
+        if (!result.error){
+          if (!this.state.showLedgerModal) return;
+          // Add signature
+          transaction.addSignature(result.message);
+          hex = toHexString(transaction.serializeBinary());
+          let b64 = hexToBase64(hex);
+          response = await client.broadcastBase64Transaction(b64);
+        }else{
+          this.setState({
+            ...this.state,
+            sendProperties: {},
+            showConfirmModal: false,
+            showFailureModal: true,
+            showLedgerModal: false,
+            modalFailureText: result.message,
+          });
+          return;
+        }
+       
+    } catch (e) {
+      console.log(e);
+    }
+    this.updateTransferResponse(response);
+  }
+
   async modalConfirm() {
     let { votes } = this.state;
     let witVotes = [];
@@ -166,16 +242,31 @@ class VoteMultiple extends Component {
         });
       }
     }
-    let client = new TronHttpClient();
-    let response = await client
-      .vote(this.state.selectedWallet.privateKey, witVotes)
-      .catch(x => null);
 
+    if (this.state.selectedWallet.ledger){
+      this.setState({
+        ...this.state,
+        showConfirmModal: false,
+        showLedgerModal: true,
+      });
+      this.voteWithLedger(witVotes);
+    } else {
+      let client = new TronHttpClient();
+      let response = await client
+        .vote(this.state.selectedWallet.privateKey, witVotes)
+        .catch(x => null);
+
+      updateTransferResponse(response);
+    }
+  }
+
+  updateTransferResponse(response){
     if (response === null) {
       this.setState({
         ...this.state,
         showConfirmModal: false,
         showFailureModal: true,
+        showLedgerModal: false,
         modalFailureText: "Voting failed"
       });
     } else if (response.result !== true) {
@@ -183,6 +274,7 @@ class VoteMultiple extends Component {
         ...this.state,
         showConfirmModal: false,
         showFailureModal: true,
+        showLedgerModal: false,
         modalFailureText: "Voting failed: " + response.message
       });
     } else {
@@ -190,6 +282,7 @@ class VoteMultiple extends Component {
         ...this.state,
         showConfirmModal: false,
         showSuccessModal: true,
+        showLedgerModal: false,
         modalSuccessText: "Vote Successful!"
       });
     }
@@ -207,6 +300,15 @@ class VoteMultiple extends Component {
     this.setState({
       ...this.state,
       showFailureModal: false
+    });
+  }
+
+  modalLedgerCancel() {
+    this.setState({
+      ...this.state,
+      showFailureModal: true,
+      modalFailureText: "Voting failed",
+      showLedgerModal: false
     });
   }
 
@@ -355,6 +457,12 @@ class VoteMultiple extends Component {
           closeModalFunction={this.modalSuccessClose.bind(this)}
           modalConfirm={this.modalSuccessClose.bind(this)}
         />
+        <PopupModal
+            waitForLedger
+            modalVis={this.state.showLedgerModal}
+            modalText="Please open Tron App and confirm transaction on ledger"
+            modalLedgerCancel={this.modalLedgerCancel.bind(this)}
+          />
       </Secondary>
     );
   }

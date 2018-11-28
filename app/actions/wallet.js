@@ -157,7 +157,9 @@ export const addAccount = async (
     frozenExpireTime: 0,
     bandwidth: 0,
 
-    watchonly: newAccount.watchonly === true
+    watchonly: newAccount.watchonly === true,
+    ledger: newAccount.ledger === true,
+    ledgerPath: newAccount.ledger ? newAccount.path : "",
   };
 
   let newWalletState =

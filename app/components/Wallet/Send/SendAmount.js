@@ -15,6 +15,10 @@ import commonStyles from "../WalletCommon.css";
 import TronHttpClient from "tron-http-client";
 import { toHexString } from "../../../utils/hex";
 
+import Transport from "@ledgerhq/hw-transport-node-hid";
+import AppTron from "../../../utils/ledger/Tron";
+const { hexToBase64 } = require("../../../utils/ledger/utils");
+
 const tools = require("tron-http-tools");
 
 class SendAmount extends Component {
@@ -45,8 +49,34 @@ class SendAmount extends Component {
       usdAmount: 0,
 
       assetName: this.props.match.params.token,
-      senderAddress: this.props.match.params.account
+      senderAddress: this.props.match.params.account,
+      
+      showLedgerModal: false,
     };
+  }
+
+  async ledgerSign(path, rawTxHex, address) {
+    while (this.state.showLedgerModal){
+      try {
+        console.log(path);
+        const transport = await Transport.create();
+        const tron = new AppTron(transport);
+        const result = await tron.getAddress(path, false);
+        if (result.address !== address)
+          return {error: true, message: "Address does not match!"}
+        
+        const signature = await tron.signTransaction(path, rawTxHex);
+    
+        return { error: false, message: new Uint8Array(signature) } 
+      } catch (error) {
+        console.log(error);
+
+        if( (this.state.showLedgerModal) && (error.message.indexOf("denied by the user") > -1)) {
+          return {error: true, message: "Canceled by user on ledger!"}
+        }
+        //return {error: true, message: "error"}
+      }
+    }
   }
 
   async onClickSend() {
@@ -77,6 +107,7 @@ class SendAmount extends Component {
           amount: this.state.amount
         },
         accountAddress: account.publicKey,
+        accountAddressPath: account.ledger ? account.ledgerPath : "",
         showConfirmModal: true,
         modalConfirmText: `Send ${this.state.amount} ${
           this.state.tokenStr
@@ -100,34 +131,108 @@ class SendAmount extends Component {
     });
   }
 
-  async modalConfirm() {
+  async sendWithLedger(){
     let client = new TronHttpClient();
     let response = null;
-    if (this.props.match.params.token) {
-      response = await client
-        .sendToken(
-          this.state.sendProperties.privateKey,
-          this.state.sendProperties.recipient,
-          parseInt(this.state.sendProperties.amount),
-          this.props.match.params.token
-        )
-        .catch(x => null);
-    } else {
-      response = await client
-        .sendTrx(
-          this.state.sendProperties.privateKey,
-          this.state.sendProperties.recipient,
-          parseInt(trxToDrops(this.state.sendProperties.amount))
-        )
-        .catch(x => null);
+    let hex = null;
+    let transaction = null;
+    try {
+      // Get Transaction hash for tokens
+      if (this.props.match.params.token) {
+        transaction = await tools.transactions.createUnsignedTransferAssetTransaction(
+          {
+            sender: this.state.accountAddress,
+            recipient: this.state.sendProperties.recipient,
+            amount: parseInt(this.state.amount),
+            assetName: this.props.match.params.token
+          },
+          await client.getLastBlock()
+        );
+      }else{
+        // Get Transaction hash for TRX
+        transaction = await tools.transactions.createUnsignedTransferTransaction(
+          {
+            sender: this.state.accountAddress,
+            recipient: this.state.sendProperties.recipient,
+            amount: parseInt(trxToDrops(this.state.amount))
+          },
+          await client.getLastBlock()
+        );
+      }
+      
+      // Convert to HEX string
+      hex = toHexString(transaction.getRawData().serializeBinary());
+      // Sign on Ledger
+      let result = await this.ledgerSign(this.state.accountAddressPath, hex, this.state.accountAddress)
+      // Transmit
+      if (typeof result === 'undefined') return;
+      if (!result.error){
+        if (!this.state.showLedgerModal) return;
+        // Add signature
+        transaction.addSignature(result.message);
+        hex = toHexString(transaction.serializeBinary());
+        let b64 = hexToBase64(hex);
+        response = await client.broadcastBase64Transaction(b64);
+      }else{
+        this.setState({
+          ...this.state,
+          sendProperties: {},
+          showConfirmModal: false,
+          showFailureModal: true,
+          showLedgerModal: false,
+          modalFailureText: result.message,
+        });
+        return;
+      }
+       
+    } catch (e) {
+      console.log(e);
     }
+    this.updateTransferResponse(response);
+  }
 
+  async modalConfirm() {
+    if (this.state.accountAddressPath!==""){
+      this.setState({
+        ...this.state,
+        showConfirmModal: false,
+        showLedgerModal: true,
+      });
+      this.sendWithLedger();
+    }
+    else {
+      let client = new TronHttpClient();
+      let response = null;
+      if (this.props.match.params.token) {
+        response = await client
+          .sendToken(
+            this.state.sendProperties.privateKey,
+            this.state.sendProperties.recipient,
+            parseInt(this.state.sendProperties.amount),
+            this.props.match.params.token
+          )
+          .catch(x => null);
+      } else {
+        response = await client
+          .sendTrx(
+            this.state.sendProperties.privateKey,
+            this.state.sendProperties.recipient,
+            parseInt(trxToDrops(this.state.sendProperties.amount))
+          )
+          .catch(x => null);
+      }
+      this.updateTransferResponse(response);
+    }
+  }
+
+  updateTransferResponse(response){
     if (response === null) {
       this.setState({
         ...this.state,
         sendProperties: {},
         showConfirmModal: false,
         showFailureModal: true,
+        showLedgerModal: false,
         modalFailureText: "Transaction failed"
       });
     } else if (response.result != true) {
@@ -136,6 +241,7 @@ class SendAmount extends Component {
         sendProperties: {},
         showConfirmModal: false,
         showFailureModal: true,
+        showLedgerModal: false,
         modalFailureText: "Transaction failed: " + response.message
       });
     } else {
@@ -144,6 +250,7 @@ class SendAmount extends Component {
         sendProperties: {},
         showConfirmModal: false,
         showSuccessModal: true,
+        showLedgerModal: false,
         modalSuccessText: "Transaction Successful!"
       });
     }
@@ -180,6 +287,15 @@ class SendAmount extends Component {
 
   modalClose() {
     this.state.showConfirmModal = false;
+  }
+
+  modalLedgerCancel() {
+    this.setState({
+      ...this.state,
+      showFailureModal: true,
+      modalFailureText: "Transaction failed",
+      showLedgerModal: false
+    });
   }
 
   onSetSenderAddress(e) {
@@ -295,6 +411,13 @@ class SendAmount extends Component {
             modalText={this.state.modalSuccessText}
             closeModalFunction={this.modalSuccessClose.bind(this)}
             modalConfirm={this.modalSuccessClose.bind(this)}
+          />
+
+          <PopupModal
+            waitForLedger
+            modalVis={this.state.showLedgerModal}
+            modalText="Please open Tron App and confirm transaction on ledger"
+            modalLedgerCancel={this.modalLedgerCancel.bind(this)}
           />
         </div>
       </div>
