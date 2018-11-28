@@ -9,6 +9,7 @@ import CreationContent from "./Create";
 import ImportPhrase from "./ImportPhrase";
 import LegacyImportPhrase from "./ImportPhraseLegacy";
 import ImportKey from "./ImportKey";
+import Ledger from "./Ledger";
 
 const panes = [
   {
@@ -40,6 +41,14 @@ const panes = [
     render: () => (
       <Tab.Pane attached={false}>
         <ImportKey />
+      </Tab.Pane>
+    )
+  },
+  {
+    menuItem: "Ledger",
+    render: () => (
+      <Tab.Pane attached={false}>
+        <Ledger />
       </Tab.Pane>
     )
   }
