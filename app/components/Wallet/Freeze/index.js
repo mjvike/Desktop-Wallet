@@ -20,6 +20,10 @@ import commonStyles from "../WalletCommon.css";
 import { toHexString } from "../../../utils/hex";
 const tools = require("tron-http-tools");
 
+import Transport from "@ledgerhq/hw-transport-node-hid";
+import AppTron from "../../../utils/ledger/Tron";
+const { hexToBase64 } = require("../../../utils/ledger/utils");
+
 class Freeze extends Component {
   constructor(props) {
     super(props);
@@ -39,7 +43,8 @@ class Freeze extends Component {
       modalSuccessText: "Success",
       accountAddress: "",
 
-      senderAddress: this.props.match.params.account
+      senderAddress: this.props.match.params.account,
+      showLedgerModal: false,
     };
   }
 
@@ -83,6 +88,7 @@ class Freeze extends Component {
           isFreeze: isFreeze
         },
         accountAddress: account.publicKey,
+        accountAddressPath: account.ledger ? account.ledgerPath : "",
         showConfirmModal: true,
         modalConfirmText: isFreeze ? `Freeze ${amount} TRX?` : "Unfreeze All?"
       });
@@ -101,45 +107,175 @@ class Freeze extends Component {
     this.setState({ amount: amount });
   }
 
-  async modalConfirm() {
-    if (this.state.freezeTrx.isFreeze) {
-      let response = await client.freezeTrx(
-        this.state.freezeTrx.privateKey,
-        this.state.freezeTrx.amount * 1000000
-      );
+  async ledgerSign(path, rawTxHex, address) {
+    while (this.state.showLedgerModal){
+      try {
+        console.log(path);
+        const transport = await Transport.create();
+        const tron = new AppTron(transport);
+        const result = await tron.getAddress(path, false);
+        if (result.address !== address)
+          return {error: true, message: "Address does not match!"}
+        
+        const signature = await tron.signTransaction(path, rawTxHex);
+    
+        return { error: false, message: new Uint8Array(signature) } 
+      } catch (error) {
+        console.log(error);
 
+        if( (this.state.showLedgerModal) && (error.message.indexOf("denied by the user") > -1)) {
+          return {error: true, message: "Canceled by user on ledger!"}
+        }
+        //return {error: true, message: "error"}
+      }
+    }
+  }
+
+  async freezeWithLedger(){
+    let response = null;
+    let hex = null;
+    let transaction = null;
+    try {
+      if (this.state.freezeTrx.isFreeze) {
+        transaction = await tools.transactions.createUnsignedFreezeBalanceTransaction(
+          {
+            ownerAddress: this.state.accountAddress,
+            amount: this.state.freezeTrx.amount * 1000000,
+            duration: 3,
+          },
+          await client.getLastBlock()
+        );
+      }else{
+        // Get Transaction hash for TRX
+        transaction = await tools.transactions.createUnsignedUnfreezeBalanceTransaction(
+          {
+            ownerAddress: this.state.accountAddress,
+          },
+          await client.getLastBlock()
+        );
+      }
+      
+      // Convert to HEX string
+      hex = toHexString(transaction.getRawData().serializeBinary());
+      // Sign on Ledger
+      let result = await this.ledgerSign(this.state.accountAddressPath, hex, this.state.accountAddress)
+      // Transmit
+      if (typeof result === 'undefined') return;
+      if (!result.error){
+        if (!this.state.showLedgerModal) return;
+        // Add signature
+        transaction.addSignature(result.message);
+        hex = toHexString(transaction.serializeBinary());
+        let b64 = hexToBase64(hex);
+        response = await client.broadcastBase64Transaction(b64);
+      }else{
+        this.setState({
+          ...this.state,
+          sendProperties: {},
+          showConfirmModal: false,
+          showFailureModal: true,
+          showLedgerModal: false,
+          modalFailureText: result.message,
+        });
+        return;
+      }
+       
+    } catch (e) {
+      console.log(e);
+    }
+    this.updateTransferResponse(response, this.state.freezeTrx.isFreeze);
+  }
+
+  updateTransferResponse(response, isFreeze){
+    if (isFreeze) {
       if (response && response.result == true) {
         this.setState({
           showConfirmModal: false,
           showSuccessModal: true,
+          showLedgerModal: false,
           modalFailureText: "Freezing Successful!"
         });
       } else {
         this.setState({
           showConfirmModal: false,
           showFailureModal: true,
+          showLedgerModal: false,
           modalFailureText:
             "Freezing Failed " +
             (response && response.message ? response.message : "")
         });
       }
     } else {
-      let response = await client.unfreezeTrx(this.state.freezeTrx.privateKey);
-
       if (response && response.result == true) {
         this.setState({
           showConfirmModal: false,
           showSuccessModal: true,
+          showLedgerModal: false,
           modalFailureText: "Unfreezing Successful!"
         });
       } else {
         this.setState({
           showConfirmModal: false,
           showFailureModal: true,
+          showLedgerModal: false,
           modalFailureText:
             "Unfreezing failed. Has it been 3 days? '" +
             (response && response.message ? response.message : "'")
         });
+      }
+    }
+  }
+
+  async modalConfirm() {
+    if (this.state.accountAddressPath!==""){
+      this.setState({
+        ...this.state,
+        showConfirmModal: false,
+        showLedgerModal: true,
+      });
+      this.freezeWithLedger();
+    }
+    else {
+  
+      if (this.state.freezeTrx.isFreeze) {
+        let response = await client.freezeTrx(
+          this.state.freezeTrx.privateKey,
+          this.state.freezeTrx.amount * 1000000
+        );
+
+        if (response && response.result == true) {
+          this.setState({
+            showConfirmModal: false,
+            showSuccessModal: true,
+            modalFailureText: "Freezing Successful!"
+          });
+        } else {
+          this.setState({
+            showConfirmModal: false,
+            showFailureModal: true,
+            modalFailureText:
+              "Freezing Failed " +
+              (response && response.message ? response.message : "")
+          });
+        }
+      } else {
+        let response = await client.unfreezeTrx(this.state.freezeTrx.privateKey);
+
+        if (response && response.result == true) {
+          this.setState({
+            showConfirmModal: false,
+            showSuccessModal: true,
+            modalFailureText: "Unfreezing Successful!"
+          });
+        } else {
+          this.setState({
+            showConfirmModal: false,
+            showFailureModal: true,
+            modalFailureText:
+              "Unfreezing failed. Has it been 3 days? '" +
+              (response && response.message ? response.message : "'")
+          });
+        }
       }
     }
   }
@@ -167,6 +303,15 @@ class Freeze extends Component {
 
   modalClose() {
     this.state.showConfirmModal = false;
+  }
+
+  modalLedgerCancel() {
+    this.setState({
+      ...this.state,
+      showFailureModal: true,
+      modalFailureText: "Transaction failed",
+      showLedgerModal: false
+    });
   }
 
   onSetSenderAddress(e) {
@@ -257,6 +402,13 @@ class Freeze extends Component {
           closeModalFunction={this.modalSuccessClose.bind(this)}
           modalConfirm={this.modalSuccessClose.bind(this)}
         />
+
+        <PopupModal
+            waitForLedger
+            modalVis={this.state.showLedgerModal}
+            modalText="Please open Tron App and confirm transaction on ledger"
+            modalLedgerCancel={this.modalLedgerCancel.bind(this)}
+          />
       </MainModal>
     );
   }

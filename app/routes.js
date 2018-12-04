@@ -26,7 +26,7 @@ import Node from "./components/Settings/Node";
 import CreateToken from "./components/Tokens/CreateToken";
 import OfflineSignature from "./components/Wallet/OfflineSignature";
 import Transfer from "./components/Transactions/Transfer";
-import Tronwatch from "./components/Content/Tronwatch";
+import Tronwatch from "./components/Content/TronWatch";
 import Broadcast from "./components/Transactions/Broadcast";
 import VoteMultiple from "./components/Vote/Votes/";
 
