@@ -12,7 +12,7 @@ class SubHeaderToken extends Component {
           "/wallets/walletDetails/" +
           this.props.match.params.account +
           "/" +
-          this.props.token
+          this.props.token.id
         }
         className={styles.coinContainer}
         activeClassName={styles.active}
@@ -20,7 +20,7 @@ class SubHeaderToken extends Component {
         <div className={styles.coinAmount}>
           <FormattedNumber value={this.props.amount} />
         </div>
-        <div className={styles.coinType}>{this.props.token}</div>
+        <div className={styles.coinType}>{this.props.token.name}</div>
       </NavLink>
     );
   }

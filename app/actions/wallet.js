@@ -147,7 +147,7 @@ export const addAccount = async (
     words: newAccount.words ? newAccount.words : false,
     tronLinkCompatible: (newAccount.tronLinkCompatible === true),
 
-    tokens: [],
+    tokens2: [],
     transactions: [],
     votes: [],
 
@@ -227,7 +227,9 @@ export const startUpdateAccountsAsync = (persistent, dispatch) => {
       let info = accountsInfo[persistent.accounts[i].publicKey];
       if (info) {
         persistent.accounts[i].trx = info.trx;
-        persistent.accounts[i].tokens = info.tokens;
+        persistent.accounts[i].tokens2 = info.tokens2;
+        if(!persistent.accounts[i].tokens2)
+          persistent.accounts[i].tokens2 = [];
         persistent.accounts[i].frozenBalance = parseInt(
           info.frozen_balance / 1000000
         );

@@ -1,25 +1,26 @@
-import React, { Component } from "react";
-import { withRouter } from "react-router-dom";
-import { connect } from "react-redux";
-import { Button } from "semantic-ui-react";
-import { TextArea } from "semantic-ui-react";
-import styles from "./SendAmount.css";
-import Header from "../../Header";
-import AmountDisplay from "./AmountDisplay";
-import buttonStyles from "../../Button.css";
-import { ContactIcon, BackArrowIcon } from "../../Icons";
-import { PopupModal } from "../../Content/PopupModal";
-import BackButton from "../../Content/BackButton";
-import { trxToDrops, dropsToFiat } from "../../../utils/currency";
-import commonStyles from "../WalletCommon.css";
-import TronHttpClient from "tron-http-client";
-import { toHexString } from "../../../utils/hex";
+import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
+import { Button } from 'semantic-ui-react';
+import { TextArea } from 'semantic-ui-react';
+import styles from './SendAmount.css';
+import Header from '../../Header';
+import AmountDisplay from './AmountDisplay';
+import buttonStyles from '../../Button.css';
+import { ContactIcon, BackArrowIcon } from '../../Icons';
+import { PopupModal } from '../../Content/PopupModal';
+import BackButton from '../../Content/BackButton';
+import { trxToDrops, dropsToFiat } from '../../../utils/currency';
+import commonStyles from '../WalletCommon.css';
+import TronHttpClient from 'tron-http-client';
+import { toHexString } from '../../../utils/hex';
 
-import Transport from "@ledgerhq/hw-transport-node-hid";
-import AppTron from "../../../utils/ledger/Tron";
-const { hexToBase64 } = require("../../../utils/ledger/utils");
+import Transport from '@ledgerhq/hw-transport-node-hid';
+import AppTron from '../../../utils/ledger/Tron';
 
-const tools = require("tron-http-tools");
+const { hexToBase64 } = require('../../../utils/ledger/utils');
+
+const tools = require('tron-http-tools');
 
 class SendAmount extends Component {
   constructor(props) {
@@ -27,62 +28,61 @@ class SendAmount extends Component {
 
     this.state = {
       amount: 0,
-      address: "",
+      address: '',
 
       showConfirmModal: false,
-      modalConfirmText: "",
+      modalConfirmText: '',
 
-      target: "",
-      tokenStr: "",
+      target: '',
+      tokenStr: '',
 
       sendProperties: {},
 
       showFailureModal: false,
-      modalFailureText: "Transaction Failed",
+      modalFailureText: 'Transaction Failed',
 
       showSuccessModal: false,
-      modalSuccessText: "Success",
-      accountAddress: "",
+      modalSuccessText: 'Success',
+      accountAddress: '',
 
-      coldOutputString: "",
+      coldOutputString: '',
 
       usdAmount: 0,
 
       assetName: this.props.match.params.token,
       senderAddress: this.props.match.params.account,
-      
+
       showLedgerModal: false,
     };
   }
 
   async ledgerSign(path, rawTxHex, address) {
-    while (this.state.showLedgerModal){
+    while (this.state.showLedgerModal) {
       try {
         console.log(path);
         const transport = await Transport.create();
         const tron = new AppTron(transport);
         const result = await tron.getAddress(path, false);
-        if (result.address !== address)
-          return {error: true, message: "Address does not match!"}
-        
+        if (result.address !== address) { return { error: true, message: 'Address does not match!' }; }
+
         const signature = await tron.signTransaction(path, rawTxHex);
-    
-        return { error: false, message: new Uint8Array(signature) } 
+
+        return { error: false, message: new Uint8Array(signature) };
       } catch (error) {
         console.log(error);
 
-        if( (this.state.showLedgerModal) && (error.message.indexOf("denied by the user") > -1)) {
-          return {error: true, message: "Canceled by user on ledger!"}
+        if ((this.state.showLedgerModal) && (error.message.indexOf('denied by the user') > -1)) {
+          return { error: true, message: 'Canceled by user on ledger!' };
         }
-        //return {error: true, message: "error"}
+        // return {error: true, message: "error"}
       }
     }
   }
 
   async onClickSend() {
     if (this.props.isCold) {
-      let client = new TronHttpClient();
-      let transaction = await tools.transactions.createUnsignedTransferAssetTransaction(
+      const client = new TronHttpClient();
+      const transaction = await tools.transactions.createUnsignedTransferAssetTransaction(
         {
           recipient: this.state.address.trim(),
           sender: this.state.senderAddress.trim(),
@@ -91,13 +91,13 @@ class SendAmount extends Component {
         },
         await client.getLastBlock()
       );
-      let hex = toHexString(transaction.serializeBinary());
+      const hex = toHexString(transaction.serializeBinary());
       this.setState({
         coldOutputString: hex
       });
     } else {
-      let accountId = this.props.match.params.account;
-      let account = this.props.wallet.persistent.accounts[accountId];
+      const accountId = this.props.match.params.account;
+      const account = this.props.wallet.persistent.accounts[accountId];
 
       this.setState({
         ...this.state,
@@ -107,7 +107,7 @@ class SendAmount extends Component {
           amount: this.state.amount
         },
         accountAddress: account.publicKey,
-        accountAddressPath: account.ledger ? account.ledgerPath : "",
+        accountAddressPath: account.ledger ? account.ledgerPath : '',
         showConfirmModal: true,
         modalConfirmText: `Send ${this.state.amount} ${
           this.state.tokenStr
@@ -119,7 +119,7 @@ class SendAmount extends Component {
   onSetAmount(amount) {
     this.setState({
       ...this.state,
-      amount: amount,
+      amount,
       usdAmount: dropsToFiat(this.props.currency, parseInt(amount) * 1000000)
     });
   }
@@ -131,8 +131,8 @@ class SendAmount extends Component {
     });
   }
 
-  async sendWithLedger(){
-    let client = new TronHttpClient();
+  async sendWithLedger() {
+    const client = new TronHttpClient();
     let response = null;
     let hex = null;
     let transaction = null;
@@ -148,7 +148,7 @@ class SendAmount extends Component {
           },
           await client.getLastBlock()
         );
-      }else{
+      } else {
         // Get Transaction hash for TRX
         transaction = await tools.transactions.createUnsignedTransferTransaction(
           {
@@ -159,21 +159,21 @@ class SendAmount extends Component {
           await client.getLastBlock()
         );
       }
-      
+
       // Convert to HEX string
       hex = toHexString(transaction.getRawData().serializeBinary());
       // Sign on Ledger
-      let result = await this.ledgerSign(this.state.accountAddressPath, hex, this.state.accountAddress)
+      const result = await this.ledgerSign(this.state.accountAddressPath, hex, this.state.accountAddress);
       // Transmit
       if (typeof result === 'undefined') return;
-      if (!result.error){
+      if (!result.error) {
         if (!this.state.showLedgerModal) return;
         // Add signature
         transaction.addSignature(result.message);
         hex = toHexString(transaction.serializeBinary());
-        let b64 = hexToBase64(hex);
+        const b64 = hexToBase64(hex);
         response = await client.broadcastBase64Transaction(b64);
-      }else{
+      } else {
         this.setState({
           ...this.state,
           sendProperties: {},
@@ -184,7 +184,6 @@ class SendAmount extends Component {
         });
         return;
       }
-       
     } catch (e) {
       console.log(e);
     }
@@ -192,16 +191,15 @@ class SendAmount extends Component {
   }
 
   async modalConfirm() {
-    if (this.state.accountAddressPath!==""){
+    if (this.state.accountAddressPath !== '') {
       this.setState({
         ...this.state,
         showConfirmModal: false,
         showLedgerModal: true,
       });
       this.sendWithLedger();
-    }
-    else {
-      let client = new TronHttpClient();
+    } else {
+      const client = new TronHttpClient();
       let response = null;
       if (this.props.match.params.token) {
         response = await client
@@ -225,7 +223,7 @@ class SendAmount extends Component {
     }
   }
 
-  updateTransferResponse(response){
+  updateTransferResponse(response) {
     if (response === null) {
       this.setState({
         ...this.state,
@@ -233,7 +231,7 @@ class SendAmount extends Component {
         showConfirmModal: false,
         showFailureModal: true,
         showLedgerModal: false,
-        modalFailureText: "Transaction failed"
+        modalFailureText: 'Transaction failed'
       });
     } else if (response.result != true) {
       this.setState({
@@ -242,7 +240,7 @@ class SendAmount extends Component {
         showConfirmModal: false,
         showFailureModal: true,
         showLedgerModal: false,
-        modalFailureText: "Transaction failed: " + response.message
+        modalFailureText: `Transaction failed: ${response.message}`
       });
     } else {
       this.setState({
@@ -251,7 +249,7 @@ class SendAmount extends Component {
         showConfirmModal: false,
         showSuccessModal: true,
         showLedgerModal: false,
-        modalSuccessText: "Transaction Successful!"
+        modalSuccessText: 'Transaction Successful!'
       });
     }
   }
@@ -272,9 +270,7 @@ class SendAmount extends Component {
   }
 
   goToAccount() {
-    this.props.history.push(
-      "/wallets/walletDetails/" + this.props.match.params.account
-    );
+    this.props.history.push(`/wallets/walletDetails/${this.props.match.params.account}`);
   }
 
   modalSuccessClose() {
@@ -293,7 +289,7 @@ class SendAmount extends Component {
     this.setState({
       ...this.state,
       showFailureModal: true,
-      modalFailureText: "Transaction failed",
+      modalFailureText: 'Transaction failed',
       showLedgerModal: false
     });
   }
@@ -311,7 +307,7 @@ class SendAmount extends Component {
   }
 
   renderColdwalletOwnerInput() {
-    if (!this.props.isCold) return "";
+    if (!this.props.isCold) return '';
 
     return (
       <div className={styles.addressContainer}>
@@ -327,7 +323,7 @@ class SendAmount extends Component {
   }
 
   renderColdwalletAssetName() {
-    if (!this.props.isCold) return "";
+    if (!this.props.isCold) return '';
 
     return (
       <div className={styles.addressContainer}>
@@ -343,7 +339,7 @@ class SendAmount extends Component {
   }
 
   renderColdwalletOutput() {
-    if (!this.props.isCold) return "";
+    if (!this.props.isCold) return '';
     return (
       <TextArea
         placeholder="Output..."
@@ -354,9 +350,9 @@ class SendAmount extends Component {
   }
 
   render() {
-    let token = this.props.match.params.token
+    const token = this.props.match.params.token
       ? this.props.match.params.token
-      : "TRX";
+      : 'TRX';
     this.state.tokenStr = token;
     return (
       <div className={styles.container}>
@@ -377,14 +373,14 @@ class SendAmount extends Component {
           {this.renderColdwalletAssetName()}
           <AmountDisplay
             usd={this.props.isCold ? 0 : this.state.usdAmount}
-            token={this.props.isCold ? "" : token}
+            token={this.props.isCold ? '' : token}
             onSetAmount={this.onSetAmount.bind(this)}
           />
           <Button
             onClick={this.onClickSend.bind(this)}
             className={`${buttonStyles.button} ${buttonStyles.black}`}
           >
-            {this.props.isCold ? "Create" : "Send"}
+            {this.props.isCold ? 'Create' : 'Send'}
           </Button>
           {this.renderColdwalletOutput()}
 
@@ -425,8 +421,4 @@ class SendAmount extends Component {
   }
 }
 
-export default withRouter(
-  connect(state => ({ wallet: state.wallet, currency: state.currency }))(
-    SendAmount
-  )
-);
+export default withRouter(connect(state => ({ wallet: state.wallet, currency: state.currency }))(SendAmount));

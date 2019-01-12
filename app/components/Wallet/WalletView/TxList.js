@@ -1,12 +1,12 @@
-import React, { Component } from "react";
-import { withRouter } from "react-router-dom";
-import { connect } from "react-redux";
-import styles from "./TxList.css";
-import Transaction from "./Transaction";
-import { updateTransferTransactions } from "../../../actions/wallet";
-import { participationToTokens } from "../../../utils/currency";
+import React, { Component } from 'react';
+import { withRouter } from 'react-router-dom';
+import { connect } from 'react-redux';
+import styles from './TxList.css';
+import Transaction from './Transaction';
+import { updateTransferTransactions } from '../../../actions/wallet';
+import { participationToTokens } from '../../../utils/currency';
 
-const TronHttpClient = require("tron-http-client");
+const TronHttpClient = require('tron-http-client');
 
 const client = new TronHttpClient();
 
@@ -15,20 +15,21 @@ class TxList extends Component {
     let filteredTransactions = [];
     for (let i = 0; i < transactions.length; i++) {
       let transaction = transactions[i];
-      if (transaction.contract_desc === "TransferContract") {
+      if (transaction.contract_desc === 'TransferContract') {
         filteredTransactions.push(transaction);
       }
     }
     return filteredTransactions;
   }
+
   getTokenTransactions(transactions) {
     let filteredTransactions = [];
     for (let i = 0; i < transactions.length; i++) {
       let transaction = transactions[i];
       if (
         !(
-          transaction.contract_desc === "ParticipateAssetIssueContract" ||
-          transaction.contract_desc === "TransferAssetContract"
+          transaction.contract_desc === 'ParticipateAssetIssueContract' ||
+          transaction.contract_desc === 'TransferAssetContract'
         )
       ) {
         continue;
@@ -44,7 +45,7 @@ class TxList extends Component {
   }
 
   getHighlightedTokenTransactions(transactions) {
-    if (this.props.match.params.token === "TRX") {
+    if (this.props.match.params.token === 'TRX') {
       return this.getTrxTransactions(transactions);
     } else {
       return this.getTokenTransactions(transactions);
@@ -57,7 +58,7 @@ class TxList extends Component {
     for (let i = filteredTransactions.length - 1; i >= 0; i--) {
       if (
         filteredTransactions[i].contract_desc ===
-        "ParticipateAssetIssueContract"
+        'ParticipateAssetIssueContract'
       ) {
         if (filteredTransactions[i].asset_issue_contract) {
           filteredTransactions[i].amount_tokens = participationToTokens(
@@ -88,6 +89,13 @@ class TxList extends Component {
     filteredTransactions = this.calculateParticipateAssetIssueContractPrices(
       filteredTransactions
     );
+    for (let i = 0; i < filteredTransactions.length; i++) {
+      const tx = filteredTransactions[i];
+      const token = this.props.wallet.persistent.accounts[accountId].tokens2[tx.asset];
+      if (tx.asset !== 'TRX' && token) {
+        filteredTransactions[i].asset =  token.name;
+      }
+    }
 
     return (
       <div className={styles.txList}>
@@ -97,7 +105,7 @@ class TxList extends Component {
             tx={tx}
             txID={tx._id}
             amount={tx.amount_tokens ? tx.amount_tokens : tx.amount}
-            isToken={tx.asset !== "TRX"}
+            isToken={tx.asset !== 'TRX'}
             date={tx.date}
             type={tx.type}
             asset={tx.asset}

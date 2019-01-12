@@ -124,7 +124,7 @@ class WalletList extends Component {
               pub={accounts[key].publicKey}
               trx={accounts[key].trx}
               name={accounts[key].name}
-              tokens={accounts[key].tokens}
+              tokens2={accounts[key].tokens2}
               index={accounts[key].publicKey}
             />
           ))}

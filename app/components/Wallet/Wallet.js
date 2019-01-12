@@ -21,7 +21,9 @@ class Wallet extends Component {
   }
 
   render() {
-    let keys = Object.keys(this.props.tokens);
+    if (!this.props.tokens2)
+      return '';
+    let keys = Object.keys(this.props.tokens2);
     return (
       <NavLink
         onClick={this.onClick.bind({ _this: this, address: this.props.index })}
@@ -37,14 +39,14 @@ class Wallet extends Component {
             <FormattedNumber value={dropsToTrx(this.props.trx)} /> TRX
           </li>
           {keys.map((k, i) => {
-            if (this.props.tokens[k] > 0) {
+            if (this.props.tokens2[k].amount > 0) {
               return (
                 <li className={styles.token} key={k}>
                   <FormattedNumber
                     formatNumber="decimal"
-                    value={this.props.tokens[k]}
+                    value={this.props.tokens2[k].amount}
                   />{" "}
-                  {k}
+                  {this.props.tokens2[k].name}
                 </li>
               );
             }
