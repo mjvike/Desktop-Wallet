@@ -1,3 +1,5 @@
+## TronWatch Desktop Wallet is now deprecated. For more information, please read [this comment](https://github.com/TronWatch/Desktop-Wallet/issues/165)
+
 # TronWatch  
 
 The TronWatch desktop wallet is currently in beta.  
